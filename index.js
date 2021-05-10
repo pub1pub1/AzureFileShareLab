@@ -8,7 +8,7 @@ const HOST='0.0.0.0';
 //App
 const app=express();
 app.get('/', (req,res)=> { res.send('Hello from node-secrets.'); });
-app.use('/data', express.static('/azurefileshare', {
+app.use('/data', express.static('/var/azurefileshare', {
 	setHeaders: (res, path, stat) => { res.set('Content-Type', 'text/plain'); }
 }));
 
