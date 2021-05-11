@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: azurestorage-test
-        image: ACR_LOGIN_SERVER/node-app:latest
+        image: {ACR_LOGIN_SERVER}/node-app:latest
         volumeMounts:
           - name: azure
             mountPath: /var/azurefileshare

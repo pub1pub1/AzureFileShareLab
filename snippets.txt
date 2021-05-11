@@ -6,49 +6,17 @@ export FILE_SHARE_NAME=aksshare
 export ACR_NAME=$(az acr list --query "[0].name" | tr -d '\n[]"')
 export ACR_LOGIN_SERVER=$(az acr list --query "[0].loginServer" | tr -d ' \n[]" ')
 
-# Create a storage account
+# Create a storage account and Azure File share
 az storage account create -n $STORAGE_ACCOUNT_NAME -g $RESOURCE_GROUP -l $LOCATION --sku Standard_LRS
-
-# Export the connection string as an environment variable, this is used when creating the Azure file share
 export AZURE_STORAGE_CONNECTION_STRING=$(az storage account show-connection-string -n $STORAGE_ACCOUNT_NAME -g $RESOURCE_GROUP -o tsv)
-
-# Create the file share
 az storage share create -n $FILE_SHARE_NAME --connection-string $AZURE_STORAGE_CONNECTION_STRING
 
 # Get storage account key
 STORAGE_KEY=$(az storage account keys list --resource-group $RESOURCE_GROUP --account-name $STORAGE_ACCOUNT_NAME --query "[0].value" -o tsv)
-
-# Echo storage account name and key
 echo Storage account name: $STORAGE_ACCOUNT_NAME
 echo Storage account key: $STORAGE_KEY
 
+# Create Kubernetes Secret and display it
 kubectl create secret generic azure-secret \
     --from-literal=azurestorageaccountname=$STORAGE_ACCOUNT_NAME \
     --from-literal=azurestorageaccountkey=$STORAGE_KEY
-
-kubectl describe secret azure-secret
-
-kubectl get secret azure-secret -o jsonpath='{.data}'
-
-
-git clone https://github.com/pub1pub1/AzureFileShareLab.git
-
-cd AzureFileShareLab
-
-az acr build --registry $ACR_NAME --image node-app:latest .
-
-- edit app.yaml and change ACR_LOGIN_SERVER 
-
-kubectl apply -f app.yaml
-
-kubectl get services
-
-## Clean-up
-
-kubectl delete -f app.yaml
-
-kubectl delete secret azure-secret
-
-az storage share delete --name $FILE_SHARE_NAME
- 
-az storage account delete --name $STORAGE_ACCOUNT_NAME -y
