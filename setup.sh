@@ -1,13 +1,8 @@
 # Change these four parameters as needed for your own environment
-export STORAGE_ACCOUNT_NAME=mystorageaccount$RANDOM
-export RESOURCE_GROUP=labResourceGroup
-export LOCATION=eastus
-export FILE_SHARE_NAME=aksshare
-export ACR_NAME=$(az acr list --query "[0].name" | tr -d '\n[]"')
-export ACR_LOGIN_SERVER=$(az acr list --query "[].loginServer" | tr -d ' \n[]" ')
-
-# Create a resource group
-az group create --name $RESOURCE_GROUP --location $LOCATION
+STORAGE_ACCOUNT_NAME=mystorageaccount$RANDOM
+RESOURCE_GROUP=labResourceGroup
+LOCATION=eastus
+FILE_SHARE_NAME=aksshare
 
 # Create a storage account
 az storage account create -n $STORAGE_ACCOUNT_NAME -g $RESOURCE_GROUP -l $LOCATION --sku Standard_LRS
@@ -25,4 +20,6 @@ STORAGE_KEY=$(az storage account keys list --resource-group $RESOURCE_GROUP --ac
 echo Storage account name: $STORAGE_ACCOUNT_NAME
 echo Storage account key: $STORAGE_KEY
 
-sed -i 's/ACR_LOGIN_SERVER/$ACR_LOGIN_SERVER/g' app.yaml
+kubectl create secret generic azure-secret \
+    --from-literal=azurestorageaccountname=$STORAGE_ACCOUNT_NAME \
+    --from-literal=azurestorageaccountkey=$STORAGE_KEY
