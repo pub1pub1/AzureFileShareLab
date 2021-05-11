@@ -1,8 +1,10 @@
 # Change these four parameters as needed for your own environment
-STORAGE_ACCOUNT_NAME=mystorageaccount$RANDOM
-RESOURCE_GROUP=labResourceGroup
-LOCATION=eastus
-FILE_SHARE_NAME=aksshare
+export STORAGE_ACCOUNT_NAME=mystorageaccount$RANDOM
+export RESOURCE_GROUP=labResourceGroup
+export LOCATION=eastus
+export FILE_SHARE_NAME=aksshare
+export ACR_NAME=$(az acr list --query "[0].name" | tr -d '\n[]"')
+export ACR_LOGIN_SERVER=$(az acr list --query "[0].loginServer" | tr -d ' \n[]" ')
 
 # Create a storage account
 az storage account create -n $STORAGE_ACCOUNT_NAME -g $RESOURCE_GROUP -l $LOCATION --sku Standard_LRS
@@ -23,3 +25,30 @@ echo Storage account key: $STORAGE_KEY
 kubectl create secret generic azure-secret \
     --from-literal=azurestorageaccountname=$STORAGE_ACCOUNT_NAME \
     --from-literal=azurestorageaccountkey=$STORAGE_KEY
+
+kubectl describe secret azure-secret
+
+kubectl get secret azure-secret -o jsonpath='{.data}'
+
+
+git clone https://github.com/pub1pub1/AzureFileShareLab.git
+
+cd AzureFileShareLab
+
+az acr build --registry $ACR_NAME --image node-app:latest .
+
+- edit app.yaml and change ACR_LOGIN_SERVER 
+
+kubectl apply -f app.yaml
+
+kubectl get services
+
+## Clean-up
+
+kubectl delete -f app.yaml
+
+kubectl delete secret azure-secret
+
+az storage share delete --name $FILE_SHARE_NAME
+ 
+az storage account delete --name $STORAGE_ACCOUNT_NAME -y
