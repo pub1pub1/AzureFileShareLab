@@ -7,7 +7,7 @@ export ACR_NAME=$(az acr list --query "[0].name" | tr -d '\n[]"')
 export ACR_LOGIN_SERVER=$(az acr list --query "[].loginServer" | tr -d ' \n[]" ')
 
 # Create a resource group
-az group create --name $RESOURCE_GROUP --LOCATION $LOCATION
+az group create --name $RESOURCE_GROUP --location $LOCATION
 
 # Create a storage account
 az storage account create -n $STORAGE_ACCOUNT_NAME -g $RESOURCE_GROUP -l $LOCATION --sku Standard_LRS
